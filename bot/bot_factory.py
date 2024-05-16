@@ -65,5 +65,9 @@ def create_bot(bot_type):
         from bot.moonshot.moonshot_bot import MoonshotBot
         return MoonshotBot()
 
+    elif bot_type == const.CHATGLM3:
+        from bot.chatglm3.chatglm3_bot import ChatGLM3Bot
+        return ChatGLM3Bot()
+
 
     raise RuntimeError

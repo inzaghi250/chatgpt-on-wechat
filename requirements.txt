@@ -8,3 +8,9 @@ Pillow
 pre-commit
 web.py
 linkai>=0.0.6.0
+protobuf==3.20.0
+transformers
+icetk
+cpm_kernels
+peft
+torch

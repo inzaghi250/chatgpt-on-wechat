@@ -17,7 +17,7 @@ QWEN_MAX = "qwen-max"
 GEMINI = "gemini"
 ZHIPU_AI = "glm-4"
 MOONSHOT = "moonshot"
-
+CHATGLM3 = "chatglm-3"
 
 # model
 CLAUDE3 = "claude-3-opus-20240229"
