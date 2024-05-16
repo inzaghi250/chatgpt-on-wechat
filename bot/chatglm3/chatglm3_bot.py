@@ -1,8 +1,8 @@
 # encoding:utf-8
 
 from bot.bot import Bot
+from bot.chatglm3.chatglm3_session import ChatGLM3Session
 from bot.session_manager import SessionManager, Session
-from bot.zhipuai.zhipu_ai_session import ZhipuAISession
 from bridge.context import ContextType
 from bridge.reply import Reply, ReplyType
 from common.log import logger
@@ -50,23 +50,23 @@ def load_model_and_tokenizer(
     )
     return model, tokenizer
 
-
+STOP_IDS = [0, 2, 64795, 64796, 64797] # '', '', user, assistant, observation
+SKIP_IDS = STOP_IDS + [30910, 13]
 class StopOnTokens(StoppingCriteria):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-        stop_ids = [0, 2]
+        stop_ids = STOP_IDS
         for stop_id in stop_ids:
             if input_ids[0][-1] == stop_id:
                 return True
         return False
 
-
 class ChatGLM3Bot(Bot):
     def __init__(self):
         super().__init__()
-        self.sessions = SessionManager(ZhipuAISession, model=conf().get("model") or "ZHIPU_AI")
+        self.sessions = SessionManager(ChatGLM3Session, model=conf().get("model") or "ZHIPU_AI")
         self.args = {
-            "temperature": conf().get("temperature", 0.6),  # 值在(0,1)之间(智谱AI 的温度不能取 0 或者 1)
-            "top_p": conf().get("top_p", 0.8),  # 值在(0,1)之间(智谱AI 的 top_p 不能取 0 或者 1)
+            "temperature": conf().get("temperature", 0.6),  # 值在(0,1)之间
+            "top_p": conf().get("top_p", 0.8),  # 值在(0,1)之间
             "max_length": 128,
         }
 
@@ -93,10 +93,12 @@ class ChatGLM3Bot(Bot):
             "stopping_criteria": StoppingCriteriaList([stop]),
             "repetition_penalty": 1.2,
         }
-        outputs = self.model.generate(**generate_kwargs)
+        output_with_prefix = self.model.generate(**generate_kwargs).detach().cpu().numpy()[0].tolist()
+        output = output_with_prefix[model_inputs.shape[1]:]
+        output = [token_id for token_id in output if token_id not in SKIP_IDS]
+        tokens = self.tokenizer.batch_decode(output, skip_special_tokens=True)
 
-        return self.tokenizer.batch_decode(outputs.detach().cpu().numpy(), skip_prompt=True, skip_special_tokens=True)[
-            0]
+        return "".join(tokens)
 
     def reply(self, query, context=None):
         if context.type == ContextType.TEXT:
