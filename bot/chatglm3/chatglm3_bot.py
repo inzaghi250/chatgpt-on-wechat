@@ -2,6 +2,7 @@
 
 from bot.bot import Bot
 from bot.session_manager import SessionManager, Session
+from bot.zhipuai.zhipu_ai_session import ZhipuAISession
 from bridge.context import ContextType
 from bridge.reply import Reply, ReplyType
 from common.log import logger
@@ -62,7 +63,7 @@ class StopOnTokens(StoppingCriteria):
 class ChatGLM3Bot(Bot):
     def __init__(self):
         super().__init__()
-        self.sessions = SessionManager(Session, model=conf().get("model") or "ZHIPU_AI")
+        self.sessions = SessionManager(ZhipuAISession, model=conf().get("model") or "ZHIPU_AI")
         self.args = {
             "temperature": conf().get("temperature", 0.6),  # 值在(0,1)之间(智谱AI 的温度不能取 0 或者 1)
             "top_p": conf().get("top_p", 0.8),  # 值在(0,1)之间(智谱AI 的 top_p 不能取 0 或者 1)
