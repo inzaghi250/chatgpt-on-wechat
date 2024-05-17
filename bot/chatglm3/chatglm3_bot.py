@@ -50,8 +50,8 @@ def load_model_and_tokenizer(
     )
     return model, tokenizer
 
-STOP_IDS = [0, 2, 64795, 64796, 64797] # '', '', user, assistant, observation
-SKIP_IDS = STOP_IDS + [30910, 13]
+STOP_IDS = [64795, 64796, 64797] # user, assistant, observation
+SKIP_IDS = STOP_IDS + [30910, 13, 0, 2]
 class StopOnTokens(StoppingCriteria):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         stop_ids = STOP_IDS
